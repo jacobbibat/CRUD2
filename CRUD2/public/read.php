@@ -1,12 +1,65 @@
-<?php include "templates/header.php"; ?>
+<?php
 
-    <h2>Find user based on location</h2>
+if (isset($_POST['submit'])) {
+    try {
+        require "../common.php";
+        require_once '../src/DBconnect.php';
 
-    <form method="post">
-        <label for="location">Location</label>
-        <input type="text" id="location" name="location">
-        <input type="submit" name="submit" value="View Results">
-    </form>
+        $sql = "SELECT * FROM users WHERE location = :location";
+        $location = $_POST["location"];
+
+        $statement = $connection->prepare($sql);
+        $statement->bindParam(':location', $location, PDO::PARAM_STR);
+        $statement->execute();
+        $result = $statement->fetchAll();
+
+    } catch (PDOException $e) {
+        echo $sql . "<br>" . $e->getMessage();
+    }
+}
+    require "templates/header.php";
+
+    if (isset($_POST['submit'])) {
+        if ($result && $statement->rowCount() > 0) {
+            ?>
+            <h2> Results</h2>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>First name</th>
+                        <th>Last name</th>
+                        <th>Email Address</th>
+                        <th>Age</th>
+                        <th>Location</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($result as $row) { ?>
+                <tr>
+                    <td><?php echo escape($row["id"]); ?></td>
+                    <td><?php echo escape($row["firstname"]); ?></td>
+                    <td><?php echo escape($row["lastname"]); ?></td>
+                    <td><?php echo escape($row["email"]); ?></td>
+                    <td><?php echo escape($row["age"]); ?></td>
+                    <td><?php echo escape($row["location"]); ?></td>
+                    <td><?php echo escape($row["date"]); ?></td>
+                </tr>
+                <?php } ?>
+                    </tbody>
+                </table>
+            <?php } else { ?>
+            > No results found for <?php echo escape($_POST["location"]); ?>.
+                <?php }
+    }   ?>
+
+<h2>Find user based on location</h2>
+<form method="post">
+    <label for="location">Location</label>
+    <input type="text" id="location" name="location">
+    <input type="submit" name="submit" value="View Results">
+</form>
 
     <a href="index.php">Back to home</a>
 
